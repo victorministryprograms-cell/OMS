@@ -1,0 +1,22 @@
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+
+    # Route API requests to the front controller.
+    RewriteRule ^api/ api/index.php [QSA,L]
+
+    # Never serve the database directory.
+    RewriteRule ^data/ - [F,L]
+
+    # Serve existing files/directories directly.
+    RewriteCond %{REQUEST_FILENAME} -f [OR]
+    RewriteCond %{REQUEST_FILENAME} -d
+    RewriteRule ^ - [L]
+
+    # SPA fallback.
+    RewriteRule ^ index.html [L]
+</IfModule>
+
+# Protect SQLite database files.
+<FilesMatch "\.(sqlite|sqlite3|db)$">
+    Require all denied
+</FilesMatch>

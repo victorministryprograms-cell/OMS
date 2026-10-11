@@ -1,0 +1,12 @@
+# Runtime data (SQLite database with user data / password hashes)
+/data/
+*.db
+*.sqlite
+*.sqlite3
+
+# Logs
+*.log
+
+# OS / editor cruft
+.DS_Store
+Thumbs.db
