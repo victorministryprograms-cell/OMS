@@ -2,7 +2,7 @@
 OMS.pages.profile = {
   name: 'profile',
   title: 'My Profile',
-  subtitle: 'Account details & security',
+  subtitle: 'Account and password',
   async render(container) {
     const ui = OMS.ui;
     const user = OMS.store.getUser();
@@ -20,6 +20,7 @@ OMS.pages.profile = {
       detail('First name', user.first_name || '—'),
       detail('Last name', user.last_name || '—'),
       detail('KingsChat phone', user.kingschat_phone || '—'),
+      user.role === 'team_leader' ? detail('Team', user.team_name || '—') : null,
       detail('Member since', ui.fmtDate(user.created_at)),
     ]));
     details.appendChild(dl);
@@ -36,7 +37,7 @@ OMS.pages.profile = {
     if (user.must_change_password) {
       pwBody.appendChild(ui.el('div', { class: 'alert warn' }, [
         ui.el('b', { text: 'Action required. ' }),
-        'Your account still uses the default password. Please set a new password to continue.',
+        'Set a new password to continue.',
       ]));
     }
 

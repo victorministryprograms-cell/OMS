@@ -12,7 +12,7 @@ OMS.pages.submissions = {
     const head = ui.el('div', { class: 'between mb-2' }, [
       ui.el('div', {}, [
         ui.el('div', { class: 'section-title', text: 'All submissions' }),
-        ui.el('div', { class: 'section-sub', style: 'margin-bottom:0', text: 'Approve rosters or request edits from team leaders.' }),
+        ui.el('div', { class: 'section-sub', style: 'margin-bottom:0', text: 'Approve rosters or request edits.' }),
       ]),
     ]);
     const tabs = ui.el('div', { class: 'role-picker', style: 'max-width:640px;grid-template-columns:repeat(5,1fr)' });
@@ -50,7 +50,7 @@ OMS.pages.submissions = {
         card.appendChild(ui.el('div', { class: 'empty' }, [
           ui.el('div', { class: 'big', text: '✎' }),
           ui.el('h4', { text: 'Nothing here' }),
-          ui.el('p', { text: 'No submissions match this filter yet.' }),
+          ui.el('p', { text: 'No submissions match this filter.' }),
         ]));
         return;
       }
@@ -59,6 +59,7 @@ OMS.pages.submissions = {
       const table = ui.el('table', { class: 'data' });
       table.appendChild(ui.el('thead', {}, [ui.el('tr', {}, [
         ui.el('th', { text: 'Team leader' }),
+        ui.el('th', { text: 'Team' }),
         ui.el('th', { text: 'Program' }),
         ui.el('th', { text: 'Officials' }),
         ui.el('th', { text: 'Status' }),
@@ -74,6 +75,7 @@ OMS.pages.submissions = {
             ui.el('div', { style: 'font-weight:600;color:var(--navy-900)', text: (s.first_name + ' ' + s.last_name).trim() || s.username }),
             ui.el('div', { class: 'small muted', text: s.username }),
           ]),
+          ui.el('td', { text: s.team_name || '—' }),
           ui.el('td', { text: s.event_name }),
           ui.el('td', {}, [
             ui.el('div', { text: String(s.official_count) }),

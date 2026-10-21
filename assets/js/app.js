@@ -21,6 +21,7 @@ OMS.VERSION = '1.0.0';
     ]},
     { group: 'Administration', items: [
       { label: 'Users & Roles', href: '#/users', icon: '⚙', roles: ['super_admin'] },
+      { label: 'Teams', href: '#/teams', icon: '⛊', roles: ['super_admin'] },
       { label: 'My Profile', href: '#/profile', icon: '●', roles: ['super_admin', 'programs_manager', 'team_leader'] },
     ]},
   ];
@@ -34,7 +35,7 @@ OMS.VERSION = '1.0.0';
   function buildSidebar(user, onClose) {
     const aside = ui.el('aside', { class: 'sidebar' });
     const brand = ui.el('div', { class: 'brand' }, [
-      ui.el('div', { class: 'mark', text: 'OMS' }),
+      ui.el('img', { class: 'brand-logo', src: '/assets/icons/logo.png', alt: 'OMS logo' }),
       ui.el('div', { class: 'name' }, [
         'Officials Management',
         ui.el('span', { text: 'System' }),
@@ -93,7 +94,7 @@ OMS.VERSION = '1.0.0';
 
     const logout = ui.el('button', { class: 'btn-ghost', text: 'Sign out' });
     logout.onclick = async function () {
-      const yes = await ui.confirm('Sign out of the Officials Management System?', { okText: 'Sign out' });
+      const yes = await ui.confirm('Sign out?', { okText: 'Sign out' });
       if (!yes) return;
       OMS.store.logout();
       location.hash = '#/login';
@@ -162,7 +163,7 @@ OMS.VERSION = '1.0.0';
       app.appendChild(ui.el('div', { class: 'empty' }, [
         ui.el('div', { class: 'big', text: '404' }),
         ui.el('h4', { text: 'Page not found' }),
-        ui.el('p', { text: 'The page you are looking for does not exist.' }),
+        ui.el('p', { text: 'This page does not exist.' }),
       ]));
       return;
     }
@@ -203,6 +204,7 @@ OMS.VERSION = '1.0.0';
     OMS.router.on('/officials', P.officials);
     OMS.router.on('/submissions', P.submissions);
     OMS.router.on('/users', P.users);
+    OMS.router.on('/teams', P.teams);
     OMS.router.on('/profile', P.profile);
   }
 

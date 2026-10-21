@@ -19,7 +19,6 @@ if ($uri !== '/' && !is_dir($target) && file_exists($target)) {
         'html' => 'text/html',
         'htm' => 'text/html',
         'txt' => 'text/plain',
-        'webmanifest' => 'application/manifest+json',
         'css' => 'text/css',
         'js' => 'application/javascript',
         'json' => 'application/json',

@@ -13,13 +13,13 @@ OMS.pages.login = {
     // Left brand panel
     const side = ui.el('div', { class: 'auth-side' }, [
       ui.el('div', {}, [
-        ui.el('div', { class: 'mark-lg', text: 'OMS' }),
+        ui.el('img', { class: 'auth-logo', src: '/assets/icons/logo.png', alt: 'OMS logo' }),
         ui.html`<h1>Officials Management <em>System</em></h1>`,
-        ui.el('p', { text: 'A streamlined way to run programs, register your working officials, and review final rosters — from one clean console.' }),
+        ui.el('p', { text: 'Run programs and manage official rosters.' }),
         ui.el('ul', {}, [
-          ui.el('li', {}, [ui.el('span', { class: 'tick', text: '✓' }), 'Programs managers create programs & share links']),
-          ui.el('li', {}, [ui.el('span', { class: 'tick', text: '✓' }), 'Team leaders pick returning officials or add new ones']),
-          ui.el('li', {}, [ui.el('span', { class: 'tick', text: '✓' }), 'Approve, request edits, and export badges to CSV']),
+          ui.el('li', {}, [ui.el('span', { class: 'tick', text: '✓' }), 'Create programs and share links']),
+          ui.el('li', {}, [ui.el('span', { class: 'tick', text: '✓' }), 'Add officials or reuse existing ones']),
+          ui.el('li', {}, [ui.el('span', { class: 'tick', text: '✓' }), 'Approve rosters and export to CSV']),
         ]),
       ]),
       ui.el('div', { class: 'small', style: 'color:#6c7c99', text: 'Version ' + (OMS.VERSION || '1.0.0') }),
@@ -28,7 +28,7 @@ OMS.pages.login = {
     // Right form
     const box = ui.el('div', { class: 'auth-box' });
     box.appendChild(ui.html`<h2>Welcome back</h2>`);
-    box.appendChild(ui.el('div', { class: 'sub', text: 'Select your privilege and sign in to continue.' }));
+    box.appendChild(ui.el('div', { class: 'sub', text: 'Sign in to continue.' }));
 
     const roleSelect = ui.el('select', { class: 'select', autocomplete: 'off' });
     [
@@ -56,7 +56,7 @@ OMS.pages.login = {
 
     box.appendChild(ui.el('div', { class: 'auth-note' }, [
       ui.el('b', { text: 'Forgot password?' }),
-      ' Contact your Super User to have it reset. Accounts are created by your administrator.',
+      ' Contact your Super User to reset it.',
     ]));
 
     async function submit() {

@@ -2,7 +2,7 @@
 OMS.pages.events = {
   name: 'events',
   title: 'Programs',
-  subtitle: 'Programs & registration links',
+  subtitle: 'Programs and registration links',
   async render(container, params, ctx) {
     const ui = OMS.ui;
     const user = OMS.store.getUser();
@@ -20,7 +20,7 @@ async function renderManagerEvents(container) {
   const head = ui.el('div', { class: 'between mb-2' }, [
     ui.el('div', {}, [
       ui.el('div', { class: 'section-title', text: 'All programs' }),
-      ui.el('div', { class: 'section-sub', style: 'margin-bottom:0', text: events.length + ' program(s) configured' }),
+      ui.el('div', { class: 'section-sub', style: 'margin-bottom:0', text: events.length + ' program(s)' }),
     ]),
   ]);
   const newBtn = ui.el('button', { class: 'btn btn-gold', text: '+ Create program' });
@@ -29,7 +29,7 @@ async function renderManagerEvents(container) {
   container.appendChild(head);
 
   if (!events.length) {
-    container.appendChild(emptyState('❖', 'No programs yet', 'Create a program to generate a unique registration link for your team leaders.'));
+    container.appendChild(emptyState('❖', 'No programs yet', 'Create a program to get a registration link.'));
     return;
   }
 
@@ -82,10 +82,10 @@ async function renderLeaderEvents(container) {
   const events = await OMS.api.get('/events');
 
   container.appendChild(ui.el('div', { class: 'section-title', text: 'My programs' }));
-  container.appendChild(ui.el('div', { class: 'section-sub', text: 'Programs you have joined. Open one to manage your roster.' }));
+  container.appendChild(ui.el('div', { class: 'section-sub', text: 'Open a program to manage your roster.' }));
 
   if (!events.length) {
-    container.appendChild(emptyState('❖', 'No programs joined', 'Use the unique link shared by your Programs Manager to join a program.'));
+    container.appendChild(emptyState('❖', 'No programs joined', 'Open the link your manager shared to join a program.'));
     return;
   }
 
@@ -125,7 +125,7 @@ function openEventModal(event, onDone) {
   const start = input('time', 'Start time', f.start_time);
   const end = input('time', 'End time', f.end_time);
   const expected = input('number', 'Expected officials per team', f.expected_count);
-  const desc = ui.el('textarea', { class: 'input', placeholder: 'What is this program about?' });
+  const desc = ui.el('textarea', { class: 'input', placeholder: 'Optional' });
   desc.value = f.description;
 
   const statusSel = ui.el('select', { class: 'select' });

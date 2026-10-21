@@ -27,7 +27,7 @@ function current_user(): array {
     if (!$payload || empty($payload['sub'])) {
         fail('Invalid or expired session.', 401);
     }
-    $stmt = db()->prepare('SELECT * FROM users WHERE id = ?');
+    $stmt = db()->prepare('SELECT u.*, t.name AS team_name FROM users u LEFT JOIN teams t ON t.id = u.team_id WHERE u.id = ?');
     $stmt->execute([(int) $payload['sub']]);
     $user = $stmt->fetch();
     if (!$user || !$user['active']) {

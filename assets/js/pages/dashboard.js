@@ -2,7 +2,7 @@
 OMS.pages.dashboard = {
   name: 'dashboard',
   title: 'Dashboard',
-  subtitle: 'Your program overview',
+  subtitle: 'Overview',
   async render(container) {
     const ui = OMS.ui;
     const user = OMS.store.getUser();
@@ -10,8 +10,8 @@ OMS.pages.dashboard = {
 
     const greet = ui.el('div', { class: 'between mb-2' }, [
       ui.el('div', {}, [
-        ui.el('div', { class: 'section-title', text: 'Welcome back, ' + (user.first_name || user.username) + ' 👋' }),
-        ui.el('div', { class: 'section-sub', style: 'margin-bottom:0', text: greeting() }),
+        ui.el('div', { class: 'section-title', text: 'Welcome back, ' + (user.first_name || user.username) }),
+        ui.el('div', { class: 'section-sub', style: 'margin-bottom:0', text: greeting() + ', here is what is happening today.' }),
       ]),
     ]);
     container.appendChild(greet);
@@ -23,8 +23,7 @@ OMS.pages.dashboard = {
 
 function greeting() {
   const h = new Date().getHours();
-  const part = h < 12 ? 'Good morning' : h < 17 ? 'Good afternoon' : 'Good evening';
-  return part + ' — here is what is happening today.';
+  return h < 12 ? 'Good morning' : h < 17 ? 'Good afternoon' : 'Good evening';
 }
 
 async function renderManager(container, isSuper) {
@@ -39,11 +38,11 @@ async function renderManager(container, isSuper) {
   const approved = submissions.filter((s) => s.status === 'approved').length;
   const officials = submissions.reduce((sum, s) => sum + (s.official_count || 0), 0);
   [
-    ['Total programs', events.length, 'Across the program'],
-    ['Awaiting review', pending, 'Submitted rosters'],
-    ['Approved rosters', approved, 'Ready for export'],
-    ['Registered officials', officials, 'All teams combined'],
-  ].forEach((s) => stats.appendChild(dashStat(s[0], s[1], s[2])));
+    ['Programs', events.length],
+    ['Awaiting review', pending],
+    ['Approved', approved],
+    ['Officials', officials],
+  ].forEach((s) => stats.appendChild(dashStat(s[0], s[1])));
   container.appendChild(stats);
 
   const cols = ui.el('div', { class: 'grid cols-2' });
@@ -55,7 +54,7 @@ async function renderManager(container, isSuper) {
     dashLink('View all', '#/events'),
   ]));
   if (!events.length) {
-    evCard.appendChild(dashEmpty('❖', 'No programs yet', 'Create your first program to generate a link for team leaders.'));
+    evCard.appendChild(dashEmpty('❖', 'No programs yet', 'Create a program to get a registration link.'));
   } else {
     const list = ui.el('div', { class: 'card-pad list' });
     events.slice(0, 5).forEach(function (e) {
@@ -82,7 +81,7 @@ async function renderManager(container, isSuper) {
   ]));
   const pendingList = submissions.filter((s) => s.status === 'submitted');
   if (!pendingList.length) {
-    subCard.appendChild(dashEmpty('✓', 'Nothing pending', 'All submitted rosters have been reviewed.'));
+    subCard.appendChild(dashEmpty('✓', 'Nothing pending', 'No rosters to review.'));
   } else {
     const list = ui.el('div', { class: 'card-pad list' });
     pendingList.slice(0, 5).forEach(function (s) {
@@ -105,8 +104,8 @@ async function renderManager(container, isSuper) {
 
   if (isSuper) {
     const note = ui.el('div', { class: 'alert info mt-2' }, [
-      ui.el('b', { text: 'Super User access: ' }),
-      'You can manage all accounts, roles and privileges from ',
+      ui.el('b', { text: 'Super User: ' }),
+      'manage accounts and roles in ',
       dashLink('Users & Roles', '#/users'),
       '.',
     ]);
@@ -127,11 +126,11 @@ async function renderLeader(container) {
 
   const stats = ui.el('div', { class: 'grid cols-4 mb-2' });
   [
-    ['My programs', events.length, 'Programs you joined'],
-    ['Officials on file', officials.length, 'Reusable records'],
-    ['Submitted', submitted, 'Awaiting approval'],
-    ['Approved', approved, 'Confirmed rosters'],
-  ].forEach((s) => stats.appendChild(dashStat(s[0], s[1], s[2])));
+    ['My programs', events.length],
+    ['Officials', officials.length],
+    ['Submitted', submitted],
+    ['Approved', approved],
+  ].forEach((s) => stats.appendChild(dashStat(s[0], s[1])));
   container.appendChild(stats);
 
   const card = ui.el('div', { class: 'card' });
@@ -140,7 +139,7 @@ async function renderLeader(container) {
     dashLink('Manage officials', '#/officials'),
   ]));
   if (!events.length) {
-    card.appendChild(dashEmpty('❖', 'No programs yet', 'Open the unique link a Programs Manager shared with you to register your officials.'));
+    card.appendChild(dashEmpty('❖', 'No programs yet', 'Open the link your manager shared to register officials.'));
   } else {
     const list = ui.el('div', { class: 'card-pad list' });
     events.forEach(function (e) {
@@ -160,17 +159,18 @@ async function renderLeader(container) {
   container.appendChild(card);
   container.appendChild(ui.el('div', { class: 'alert info mt-2' }, [
     ui.el('b', { text: 'Tip: ' }),
-    'You can build your roster from officials you have used before, or add brand-new officials with their KingsChat phone number.',
+    'Reuse officials you added before, or add new ones.',
   ]));
 }
 
 function dashStat(label, value, hint) {
   const ui = OMS.ui;
-  return ui.el('div', { class: 'stat' }, [
+  const node = ui.el('div', { class: 'stat' }, [
     ui.el('div', { class: 'label', text: label }),
     ui.el('div', { class: 'value', text: String(value) }),
-    ui.el('div', { class: 'hint', text: hint }),
   ]);
+  if (hint) node.appendChild(ui.el('div', { class: 'hint', text: hint }));
+  return node;
 }
 
 function dashEmpty(icon, title, text) {

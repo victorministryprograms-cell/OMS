@@ -4,7 +4,11 @@
 require_super_admin();
 
 if ($method === 'GET' && !isset($rest[0])) {
-    $rows = db()->query('SELECT * FROM users ORDER BY role, username')->fetchAll();
+    $rows = db()->query(
+        'SELECT u.*, t.name AS team_name FROM users u
+         LEFT JOIN teams t ON t.id = u.team_id
+         ORDER BY u.role, u.username'
+    )->fetchAll();
     ok(array_map('user_public', $rows));
 }
 
@@ -15,9 +19,10 @@ if ($method === 'POST' && !isset($rest[0])) {
         fail('Invalid role.', 422);
     }
     $password = (string) ($data['password'] ?? DEFAULT_PASSWORD);
+    $teamId = $data['role'] === ROLE_LEADER ? normalize_team_id($data['team_id'] ?? null) : null;
     $stmt = db()->prepare(
-        'INSERT INTO users (username, password_hash, role, first_name, last_name, kingschat_phone, must_change_password)
-         VALUES (?, ?, ?, ?, ?, ?, 1)'
+        'INSERT INTO users (username, password_hash, role, first_name, last_name, kingschat_phone, team_id, must_change_password)
+         VALUES (?, ?, ?, ?, ?, ?, ?, 1)'
     );
     try {
         $stmt->execute([
@@ -27,11 +32,14 @@ if ($method === 'POST' && !isset($rest[0])) {
             trim((string) ($data['first_name'] ?? '')),
             trim((string) ($data['last_name'] ?? '')),
             trim((string) ($data['kingschat_phone'] ?? '')),
+            $teamId,
         ]);
     } catch (PDOException $e) {
         fail('Username already exists.', 409);
     }
-    ok(user_public(db()->query('SELECT * FROM users WHERE id = ' . db()->lastInsertId())->fetch()), 201);
+    $created = db()->prepare('SELECT u.*, t.name AS team_name FROM users u LEFT JOIN teams t ON t.id = u.team_id WHERE u.id = ?');
+    $created->execute([(int) db()->lastInsertId()]);
+    ok(user_public($created->fetch()), 201);
 }
 
 if ($method === 'PUT' && isset($rest[0])) {
@@ -46,12 +54,16 @@ if ($method === 'PUT' && isset($rest[0])) {
             $vals[] = is_bool($data[$f]) ? (int) $data[$f] : $data[$f];
         }
     }
+    if (array_key_exists('team_id', $data)) {
+        $sets[] = 'team_id = ?';
+        $vals[] = normalize_team_id($data['team_id']);
+    }
     if (!$sets) {
         fail('Nothing to update.', 422);
     }
     $vals[] = $id;
     db()->prepare('UPDATE users SET ' . implode(', ', $sets) . ' WHERE id = ?')->execute($vals);
-    $row = db()->prepare('SELECT * FROM users WHERE id = ?');
+    $row = db()->prepare('SELECT u.*, t.name AS team_name FROM users u LEFT JOIN teams t ON t.id = u.team_id WHERE u.id = ?');
     $row->execute([$id]);
     ok(user_public($row->fetch()));
 }

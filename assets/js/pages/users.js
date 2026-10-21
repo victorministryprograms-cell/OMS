@@ -2,7 +2,7 @@
 OMS.pages.users = {
   name: 'users',
   title: 'Users & Roles',
-  subtitle: 'System accounts and privileges',
+  subtitle: 'Accounts and roles',
   roles: ['super_admin'],
   async render(container) {
     const ui = OMS.ui;
@@ -11,11 +11,11 @@ OMS.pages.users = {
     const head = ui.el('div', { class: 'between mb-2' }, [
       ui.el('div', {}, [
         ui.el('div', { class: 'section-title', text: 'All accounts' }),
-        ui.el('div', { class: 'section-sub', style: 'margin-bottom:0', text: 'Create users, assign privileges and reset passwords.' }),
+        ui.el('div', { class: 'section-sub', style: 'margin-bottom:0', text: 'Create users, assign roles and reset passwords.' }),
       ]),
     ]);
     const add = ui.el('button', { class: 'btn btn-gold', text: '+ New user' });
-    add.onclick = () => userModal(null, load);
+    add.onclick = async () => userModal(null, load, await ui.fetchTeams());
     head.appendChild(add);
     container.appendChild(head);
 
@@ -37,6 +37,7 @@ OMS.pages.users = {
         ui.el('th', { text: 'Name' }),
         ui.el('th', { text: 'Username' }),
         ui.el('th', { text: 'Privilege' }),
+        ui.el('th', { text: 'Team' }),
         ui.el('th', { text: 'KingsChat' }),
         ui.el('th', { text: 'Status' }),
         ui.el('th', { text: 'Actions' }),
@@ -44,7 +45,7 @@ OMS.pages.users = {
       const tbody = ui.el('tbody');
       rows.forEach(function (u) {
         const edit = ui.el('button', { class: 'btn btn-sm btn-outline', text: 'Edit' });
-        edit.onclick = () => userModal(u, load);
+        edit.onclick = async () => userModal(u, load, await ui.fetchTeams());
 
         const reset = ui.el('button', { class: 'btn btn-sm btn-outline', text: 'Reset password' });
         reset.onclick = async function () {
@@ -74,6 +75,7 @@ OMS.pages.users = {
           ui.el('td', { style: 'font-weight:600;color:var(--navy-900)', text: ((u.first_name + ' ' + u.last_name).trim()) || '—' }),
           ui.el('td', { class: 'mono small', text: u.username }),
           ui.el('td', { html: '<span class="badge navy">' + ui.esc(ui.roleLabel(u.role)) + '</span>' }),
+          ui.el('td', { text: u.role === 'team_leader' ? (u.team_name || '—') : '—' }),
           ui.el('td', { class: 'mono small', text: u.kingschat_phone || '—' }),
           ui.el('td', { html: '<span class="badge ' + (u.active ? 'approved' : 'draft') + '">' + (u.active ? 'Active' : 'Disabled') + '</span>' }),
           ui.el('td', {}, [ui.el('div', { class: 'cell-actions' }, actions)]),
@@ -88,7 +90,7 @@ OMS.pages.users = {
   },
 };
 
-function userModal(user, onDone) {
+function userModal(user, onDone, teams) {
   const ui = OMS.ui;
   const isEdit = !!user;
   function f(label, node) { return ui.el('div', { class: 'field' }, [ui.el('label', { text: label }), node]); }
@@ -105,15 +107,22 @@ function userModal(user, onDone) {
     ['team_leader', 'Team Leader'],
   ].forEach((r) => roleSel.appendChild(ui.el('option', { value: r[0], selected: user && user.role === r[0] ? 'selected' : null, text: r[1] })));
 
+  const team = ui.teamSelect(teams, user ? user.team_id : null);
+  const teamField = f('Team', team);
+  function syncTeam() { teamField.style.display = roleSel.value === 'team_leader' ? '' : 'none'; }
+  roleSel.onchange = syncTeam;
+
   const password = ui.el('input', { class: 'input', type: 'password', placeholder: 'Defaults to 1234567890' });
 
   const body = ui.el('div', {}, [
     ui.el('div', { class: 'field-row' }, [f('KingsChat Username', username), f('Privilege', roleSel)]),
     ui.el('div', { class: 'field-row' }, [f('First name', first), f('Last name', last)]),
     f('KingsChat phone', phone),
+    teamField,
     isEdit ? null : f('Initial password (optional)', password),
-    isEdit ? null : ui.el('div', { class: 'hint', text: 'If left blank, the default password 1234567890 will be used.' }),
+    isEdit ? null : ui.el('div', { class: 'hint', text: 'Defaults to 1234567890.' }),
   ]);
+  syncTeam();
 
   const save = ui.el('button', { class: 'btn btn-gold', text: isEdit ? 'Save changes' : 'Create user' });
   const cancel = ui.el('button', { class: 'btn btn-outline', text: 'Cancel' });
@@ -124,6 +133,7 @@ function userModal(user, onDone) {
     const payload = {
       first_name: first.value.trim(), last_name: last.value.trim(),
       kingschat_phone: phone.value.trim(), role: roleSel.value,
+      team_id: roleSel.value === 'team_leader' && team.value ? parseInt(team.value, 10) : null,
     };
     if (!isEdit) {
       payload.username = username.value.trim();

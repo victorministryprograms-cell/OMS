@@ -16,9 +16,9 @@ OMS.pages.join = {
     const wrap = ui.el('div', { class: 'auth-wrap' });
     const side = ui.el('div', { class: 'auth-side' }, [
       ui.el('div', {}, [
-        ui.el('div', { class: 'mark-lg', text: 'OMS' }),
+        ui.el('img', { class: 'auth-logo', src: '/assets/icons/logo.png', alt: 'OMS logo' }),
         ui.html`<h1>You are invited to <em>serve</em></h1>`,
-        ui.el('p', { text: 'A Programs Manager has shared this program with you. Register your working officials so your team roster is confirmed.' }),
+        ui.el('p', { text: 'Your manager shared this program with you. Register your officials to confirm your roster.' }),
       ]),
       ui.el('div', { class: 'small', style: 'color:#6c7c99', text: 'Officials Management System' }),
     ]);
@@ -42,7 +42,7 @@ OMS.pages.join = {
       const user = OMS.store.getUser();
       const action = ui.el('div', { class: 'mt-3' });
       if (!OMS.store.isAuthed() || !user) {
-        action.appendChild(ui.el('div', { class: 'alert info', text: 'Sign in as a Team Leader to select and submit your officials.' }));
+        action.appendChild(ui.el('div', { class: 'alert info', text: 'Sign in as a Team Leader to register officials.' }));
         const signin = ui.el('button', { class: 'btn btn-gold btn-block', text: 'Sign in to register' });
         signin.onclick = function () {
           sessionStorage.setItem('oms_return', '#/join/' + params.token);
@@ -51,7 +51,7 @@ OMS.pages.join = {
         action.appendChild(signin);
       } else if (user.role === 'team_leader') {
         if (event.status !== 'open') {
-          action.appendChild(ui.el('div', { class: 'alert warn', text: 'This program is currently closed for new registration.' }));
+          action.appendChild(ui.el('div', { class: 'alert warn', text: 'Registration is closed.' }));
         }
         const join = ui.el('button', { class: 'btn btn-gold btn-block', text: 'Open my roster for this program' });
         join.onclick = async function () {
@@ -64,7 +64,7 @@ OMS.pages.join = {
         };
         action.appendChild(join);
       } else {
-        action.appendChild(ui.el('div', { class: 'alert info', text: 'You are signed in as a Programs Manager. Team leaders use this link to register officials.' }));
+        action.appendChild(ui.el('div', { class: 'alert info', text: 'Signed in as a Programs Manager. Team leaders use this link to register.' }));
         action.appendChild(homeBtn());
       }
       box.appendChild(action);

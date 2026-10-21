@@ -135,6 +135,9 @@ if ($method === 'GET' && !$sub) {
         }
         $data['submission'] = $entry ?: null;
         $data['is_participant'] = (bool) $entry;
+        $team = db()->prepare('SELECT t.name FROM teams t JOIN users u ON u.team_id = t.id WHERE u.id = ?');
+        $team->execute([$user['id']]);
+        $data['team_name'] = $team->fetchColumn() ?: null;
     }
     ok($data);
 }
@@ -171,8 +174,10 @@ if ($sub === 'roster') {
             $user = require_role([ROLE_LEADER]);
             $submission = get_or_create_submission((int) $event['id'], (int) $user['id']);
             $stmt = db()->prepare(
-                'SELECT o.*, r.id AS roster_id, r.approved
-                 FROM roster_entries r JOIN officials o ON o.id = r.official_id
+                'SELECT o.*, t.name AS team_name, r.id AS roster_id, r.approved
+                 FROM roster_entries r
+                 JOIN officials o ON o.id = r.official_id
+                 LEFT JOIN teams t ON t.id = o.team_id
                  WHERE r.submission_id = ? ORDER BY o.last_name, o.first_name'
             );
             $stmt->execute([$submission['id']]);
@@ -201,22 +206,10 @@ if ($sub === 'roster') {
                 if (!valid_phone((string) $data['kingschat_phone'])) {
                     fail('KingsChat phone must start with 234.', 422);
                 }
-                db()->prepare(
-                    'INSERT INTO officials
-                        (owner_id, title, first_name, last_name, kingschat_phone, kingschat_handle, accommodation, hq_staff_member, role)
-                     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)'
-                )->execute([
-                    $user['id'],
-                    trim((string) ($data['title'] ?? '')),
-                    trim((string) $data['first_name']),
-                    trim((string) $data['last_name']),
-                    preg_replace('/\s+/', '', (string) $data['kingschat_phone']),
-                    trim((string) ($data['kingschat_handle'] ?? '')),
-                    (int) ($data['accommodation'] ?? 0),
-                    (int) ($data['hq_staff_member'] ?? 0),
-                    trim((string) ($data['role'] ?? '')),
-                ]);
-                $officialId = (int) db()->lastInsertId();
+                if (!empty($data['email']) && !valid_email((string) $data['email'])) {
+                    fail('Please enter a valid email address.', 422);
+                }
+                $officialId = insert_official((int) $user['id'], $data);
             }
 
             try {
@@ -264,10 +257,12 @@ if ($sub === 'submit' && $method === 'POST') {
 if ($sub === 'submissions' && $method === 'GET') {
     require_manager();
     $stmt = db()->prepare(
-        'SELECT s.*, u.first_name, u.last_name, u.username, u.kingschat_phone,
+        'SELECT s.*, u.first_name, u.last_name, u.username, u.kingschat_phone, t.name AS team_name,
                 (SELECT COUNT(*) FROM roster_entries r WHERE r.submission_id = s.id) AS official_count,
                 (SELECT COUNT(*) FROM roster_entries r WHERE r.submission_id = s.id AND r.approved = 1) AS approved_count
-         FROM submissions s JOIN users u ON u.id = s.team_leader_id
+         FROM submissions s
+         JOIN users u ON u.id = s.team_leader_id
+         LEFT JOIN teams t ON t.id = u.team_id
          WHERE s.event_id = ? ORDER BY s.submitted_at DESC, s.created_at DESC'
     );
     $stmt->execute([$event['id']]);

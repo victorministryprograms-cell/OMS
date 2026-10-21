@@ -50,7 +50,7 @@ async function loadSubmissions(card, eventId) {
     card.appendChild(ui.el('div', { class: 'empty' }, [
       ui.el('div', { class: 'big', text: '✎' }),
       ui.el('h4', { text: 'No submissions yet' }),
-      ui.el('p', { text: 'Share the registration link with team leaders. Their rosters will appear here once submitted.' }),
+      ui.el('p', { text: 'Share the registration link. Rosters appear here once submitted.' }),
     ]));
     return;
   }
@@ -59,6 +59,7 @@ async function loadSubmissions(card, eventId) {
   const table = ui.el('table', { class: 'data' });
   table.appendChild(ui.el('thead', {}, [ui.el('tr', {}, [
     ui.el('th', { text: 'Team leader' }),
+    ui.el('th', { text: 'Team' }),
     ui.el('th', { text: 'Officials' }),
     ui.el('th', { text: 'Status' }),
     ui.el('th', { text: 'Submitted' }),
@@ -71,6 +72,7 @@ async function loadSubmissions(card, eventId) {
         ui.el('div', { style: 'font-weight:600;color:var(--navy-900)', text: (s.first_name + ' ' + s.last_name).trim() || s.username }),
         ui.el('div', { class: 'small muted', text: s.kingschat_phone || s.username }),
       ]),
+      ui.el('td', { text: s.team_name || '—' }),
       ui.el('td', {}, [
         ui.el('div', { text: String(s.official_count) }),
         Number(s.approved_count) > 0 ? ui.el('div', { class: 'small muted', text: s.approved_count + ' approved' }) : null,
@@ -104,7 +106,7 @@ async function openReviewModal(sub, onDone) {
   body.appendChild(ui.el('div', { class: 'between mb-2' }, [
     ui.el('div', {}, [
       ui.el('div', { style: 'font-weight:700;color:var(--navy-900)', text: (detail.first_name + ' ' + detail.last_name).trim() || detail.username }),
-      ui.el('div', { class: 'small muted', text: detail.kingschat_phone || '' }),
+      ui.el('div', { class: 'small muted', text: (detail.team_name ? 'Team: ' + detail.team_name + ' • ' : '') + (detail.kingschat_phone || '') }),
     ]),
     ui.el('div', { html: ui.submissionBadge(detail.status) }),
   ]));
@@ -129,7 +131,7 @@ async function openReviewModal(sub, onDone) {
   if (!detail.officials.length) {
     body.appendChild(ui.el('div', { class: 'small muted', text: 'No officials on this roster yet.' }));
   } else {
-    body.appendChild(ui.el('div', { class: 'small muted', style: 'margin-bottom:8px', text: 'Uncheck any official you do not want to approve.' }));
+    body.appendChild(ui.el('div', { class: 'small muted', style: 'margin-bottom:8px', text: 'Uncheck officials you do not want to approve.' }));
     const list = ui.el('div', { class: 'list' });
     detail.officials.forEach(function (o) {
       const cb = ui.el('input', { type: 'checkbox', style: 'width:16px;height:16px;accent-color:var(--navy-700);flex:none' });
@@ -191,7 +193,7 @@ async function openReviewModal(sub, onDone) {
     } catch (e) { ui.toast(e.message, 'err'); approve.disabled = false; }
   };
   requestEdit.onclick = async function () {
-    if (!noteBox.value.trim()) { ui.toast('Please add a note describing the changes.', 'err'); return; }
+    if (!noteBox.value.trim()) { ui.toast('Add a note describing the changes.', 'err'); return; }
     requestEdit.disabled = true;
     try {
       await OMS.api.post('/submissions/' + detail.id + '/request-revision', { note: noteBox.value.trim() });
@@ -234,7 +236,7 @@ function renderLeaderDetail(container, event) {
 
   if (!event.is_participant) {
     container.appendChild(ui.el('div', { class: 'card card-pad mt-2' }, [
-      ui.el('div', { class: 'alert info', style: 'margin:0', text: 'You are not registered for this program yet. Open it from the unique link your manager shared.' }),
+      ui.el('div', { class: 'alert info', style: 'margin:0', text: 'You are not registered for this program yet. Open the link your manager shared.' }),
     ]));
     return;
   }
@@ -248,7 +250,7 @@ function renderLeaderDetail(container, event) {
   const head = ui.el('div', { class: 'card-head' }, [
     ui.el('div', {}, [
       ui.el('h3', { text: 'My officials roster' }),
-      ui.el('p', { text: 'Select returning officials or add new personnel for this program.' }),
+      ui.el('p', { text: 'Select returning officials or add new ones.' }),
     ]),
     ui.el('div', { class: 'row' }, [
       ui.el('span', { html: ui.submissionBadge(status) }),
@@ -262,7 +264,7 @@ function renderLeaderDetail(container, event) {
   addExisting.disabled = locked || event.status === 'closed';
   addNew.disabled = locked || event.status === 'closed';
   toolbar.appendChild(ui.el('div', { class: 'row mb-2' }, [addExisting, addNew]));
-  if (locked) toolbar.appendChild(ui.el('div', { class: 'small muted mb-2', text: 'This roster is ' + status + '. Ask the manager to reopen editing if changes are needed.' }));
+  if (locked) toolbar.appendChild(ui.el('div', { class: 'small muted mb-2', text: 'This roster is ' + status + '. Ask the manager to reopen it for changes.' }));
   card.appendChild(toolbar);
 
   const listWrap = ui.el('div', { class: 'card-pad list' });
@@ -270,7 +272,7 @@ function renderLeaderDetail(container, event) {
   container.appendChild(card);
 
   const submitRow = ui.el('div', { class: 'between mt-2' });
-  submitRow.appendChild(ui.el('span', { class: 'small muted', text: 'Officials are saved instantly. Submit when your list is complete.' }));
+  submitRow.appendChild(ui.el('span', { class: 'small muted', text: 'Changes save instantly. Submit when your list is complete.' }));
   const submitBtn = ui.el('button', { class: 'btn btn-gold', text: 'Submit roster for approval' });
   submitBtn.disabled = locked || event.status === 'closed';
   submitRow.appendChild(submitBtn);
@@ -291,7 +293,7 @@ function renderLeaderDetail(container, event) {
       listWrap.appendChild(ui.el('div', { class: 'empty', style: 'padding:30px 10px' }, [
         ui.el('div', { class: 'big', text: '☰' }),
         ui.el('h4', { text: 'No officials selected' }),
-        ui.el('p', { text: 'Add officials from your records or create new ones to build your roster.' }),
+        ui.el('p', { text: 'Add officials from your records or create new ones.' }),
       ]));
       return;
     }
@@ -320,7 +322,10 @@ function renderLeaderDetail(container, event) {
   }
 
   addExisting.onclick = () => openExistingPicker(event, roster, load);
-  addNew.onclick = () => openNewOfficialModal(event, load);
+  addNew.onclick = async () => {
+    const teams = await ui.fetchTeams();
+    openNewOfficialModal(event, load, teams, (OMS.store.getUser() || {}).team_id);
+  };
   submitBtn.onclick = async function () {
     if (!roster.length) { ui.toast('Add at least one official before submitting.', 'err'); return; }
     if (!(await ui.confirm('Submit your roster of ' + roster.length + ' official(s) for approval?', { okText: 'Submit' }))) return;
@@ -340,10 +345,10 @@ function approvalPanel(sub) {
   const ui = OMS.ui;
   const status = sub ? sub.status : 'draft';
   const meta = {
-    draft: { cls: 'info', title: 'Draft', msg: 'This roster has not been submitted for approval yet.' },
-    submitted: { cls: 'info', title: 'Pending', msg: 'Submitted for approval — awaiting your Programs Manager.' },
-    approved: { cls: 'ok', title: 'Approved', msg: 'Your roster has been approved.' },
-    revision: { cls: 'warn', title: 'Edits requested', msg: 'Your Programs Manager requested changes to this roster.' },
+    draft: { cls: 'info', title: 'Draft', msg: 'Not submitted yet.' },
+    submitted: { cls: 'info', title: 'Pending', msg: 'Awaiting Programs manager\'s review.' },
+    approved: { cls: 'ok', title: 'Approved', msg: 'Approved.' },
+    revision: { cls: 'warn', title: 'Edits requested', msg: 'Your manager requested changes.' },
   }[status] || { cls: 'info', title: ui.submissionLabel(status), msg: '' };
 
   if (status === 'approved' && sub && sub.official_count) {
@@ -410,7 +415,7 @@ function openExistingPicker(event, roster, onDone) {
       !f || (o.first_name + ' ' + o.last_name + ' ' + o.kingschat_phone + ' ' + (o.kingschat_handle || '') + ' ' + (o.role || '')).toLowerCase().indexOf(f) !== -1);
     if (!filtered.length) {
       listWrap.appendChild(ui.el('div', { class: 'empty', style: 'padding:30px 10px' }, [
-        ui.el('p', { text: all.length ? 'No officials match your search.' : 'You have no saved officials yet. Add a new official instead.' }),
+        ui.el('p', { text: all.length ? 'No officials match your search.' : 'No saved officials yet. Add a new one.' }),
       ]));
       updateNote();
       return;
@@ -462,7 +467,7 @@ function openExistingPicker(event, roster, onDone) {
   };
 }
 
-function openNewOfficialModal(event, onDone) {
+function openNewOfficialModal(event, onDone, teams, defaultTeamId) {
   const ui = OMS.ui;
   function f(label, node) { return ui.el('div', { class: 'field' }, [ui.el('label', { text: label }), node]); }
   const title = ui.titleSelect('');
@@ -470,6 +475,8 @@ function openNewOfficialModal(event, onDone) {
   const last = ui.el('input', { class: 'input', placeholder: 'Last name' });
   const phone = ui.el('input', { class: 'input', placeholder: '2348012345678' });
   const handle = ui.el('input', { class: 'input', placeholder: 'e.g. @john.doe' });
+  const email = ui.el('input', { class: 'input', type: 'email', placeholder: 'name@example.com' });
+  const team = ui.teamSelect(teams, defaultTeamId);
 
   function yesNo() {
     const sel = ui.el('select', { class: 'select' });
@@ -481,10 +488,12 @@ function openNewOfficialModal(event, onDone) {
   const hq = yesNo();
 
   const body = ui.el('div', {}, [
-    ui.el('div', { class: 'alert info', text: 'This official is saved to your records and added to the roster.' }),
-    ui.el('div', { class: 'field-row-3' }, [f('Title', title), f('First Name', first), f('Last Name', last)]),
-    f('KINGSCHAT Phone Number (Pls include 234 in phone number)', phone),
-    f('KINGSCHAT Handle', handle),
+    ui.el('div', { class: 'alert info', text: 'Saved to your records and added to this roster.' }),
+    ui.el('div', { class: 'field-row' }, [f('First Name', first), f('Last Name', last)]),
+    f('KingsChat Username', handle),
+    ui.el('div', { class: 'field-row' }, [f('Email Address', email), f('Team', team)]),
+    f('Phone Number (KingsChat number, include 234)', phone),
+    f('Title', title),
     ui.el('div', { class: 'field-row' }, [
       f('ACCOMODATION YES/NO (Subject to Approval)', accom),
       f('HQ Staff Member (YES/NO)', hq),
@@ -500,6 +509,7 @@ function openNewOfficialModal(event, onDone) {
     const payload = {
       title: title.value.trim(), first_name: first.value.trim(), last_name: last.value.trim(),
       kingschat_phone: phone.value.trim(), kingschat_handle: handle.value.trim(),
+      email: email.value.trim(), team_id: team.value ? parseInt(team.value, 10) : null,
       accommodation: parseInt(accom.value, 10), hq_staff_member: parseInt(hq.value, 10),
     };
     if (!payload.first_name || !payload.last_name || !payload.kingschat_phone) {
@@ -507,6 +517,9 @@ function openNewOfficialModal(event, onDone) {
     }
     if (!/^234\d{7,}$/.test(payload.kingschat_phone.replace(/\s+/g, ''))) {
       ui.toast('KingsChat phone must start with 234.', 'err'); return;
+    }
+    if (payload.email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(payload.email)) {
+      ui.toast('Enter a valid email address.', 'err'); return;
     }
     save.disabled = true;
     try {
@@ -522,6 +535,8 @@ function officialMeta(o) {
   const parts = [];
   if (o.kingschat_handle) parts.push(o.kingschat_handle);
   parts.push(o.kingschat_phone);
+  if (o.email) parts.push(o.email);
+  if (o.team_name) parts.push('Team: ' + o.team_name);
   parts.push('Accommodation: ' + (Number(o.accommodation) ? 'Yes' : 'No'));
   parts.push('HQ Staff: ' + (Number(o.hq_staff_member) ? 'Yes' : 'No'));
   return parts.join(' • ');
@@ -535,6 +550,7 @@ function eventHeader(event, manager, onEdit) {
       ui.el('h2', { style: 'font-size:22px;color:var(--navy-900)', text: event.name }),
       ui.el('div', { class: 'row mt-1' }, [
         ui.el('span', { html: '<span class="badge ' + ui.esc(event.status) + '">' + ui.esc(event.status) + '</span>' }),
+        (!manager && event.team_name) ? ui.el('span', { class: 'badge navy', text: 'Team: ' + event.team_name }) : null,
         event.expected_count ? ui.el('span', { class: 'badge gold', text: 'Expected ' + event.expected_count + ' / team' }) : null,
       ]),
     ]),

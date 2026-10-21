@@ -52,6 +52,63 @@ function valid_phone(string $phone): bool {
     return (bool) preg_match('/^234\d{7,}$/', preg_replace('/\s+/', '', $phone));
 }
 
+function valid_email(string $email): bool {
+    return (bool) filter_var($email, FILTER_VALIDATE_EMAIL);
+}
+
+// Resolves a team id that actually exists, or null.
+function normalize_team_id($value): ?int {
+    if ($value === null || $value === '' || $value === false) {
+        return null;
+    }
+    $id = (int) $value;
+    if ($id <= 0) {
+        return null;
+    }
+    $stmt = db()->prepare('SELECT id FROM teams WHERE id = ?');
+    $stmt->execute([$id]);
+    return $stmt->fetchColumn() ? $id : null;
+}
+
+// Finds a team by (case-insensitive) name, creating it when missing.
+function resolve_team_name(string $name): ?int {
+    $name = trim($name);
+    if ($name === '') {
+        return null;
+    }
+    $stmt = db()->prepare('SELECT id FROM teams WHERE name = ? COLLATE NOCASE');
+    $stmt->execute([$name]);
+    $id = $stmt->fetchColumn();
+    if ($id) {
+        return (int) $id;
+    }
+    db()->prepare('INSERT INTO teams (name) VALUES (?)')->execute([$name]);
+    return (int) db()->lastInsertId();
+}
+
+// Inserts an official for the given owner from a data array.
+// Returns the new official id. Callers should validate first_name/last_name/phone.
+function insert_official(int $ownerId, array $data): int {
+    db()->prepare(
+        'INSERT INTO officials
+            (owner_id, title, first_name, last_name, kingschat_phone, kingschat_handle, email, team_id, accommodation, hq_staff_member, role)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)'
+    )->execute([
+        $ownerId,
+        trim((string) ($data['title'] ?? '')),
+        trim((string) $data['first_name']),
+        trim((string) $data['last_name']),
+        preg_replace('/\s+/', '', (string) $data['kingschat_phone']),
+        trim((string) ($data['kingschat_handle'] ?? '')),
+        trim((string) ($data['email'] ?? '')),
+        normalize_team_id($data['team_id'] ?? null),
+        (int) ($data['accommodation'] ?? 0) ? 1 : 0,
+        (int) ($data['hq_staff_member'] ?? 0) ? 1 : 0,
+        trim((string) ($data['role'] ?? '')),
+    ]);
+    return (int) db()->lastInsertId();
+}
+
 // ---- Misc ------------------------------------------------------------------
 
 function make_token(): string {
@@ -72,6 +129,8 @@ function user_public(array $u): array {
         'first_name' => $u['first_name'],
         'last_name' => $u['last_name'],
         'kingschat_phone' => $u['kingschat_phone'],
+        'team_id' => isset($u['team_id']) && $u['team_id'] !== null ? (int) $u['team_id'] : null,
+        'team_name' => $u['team_name'] ?? null,
         'must_change_password' => (bool) $u['must_change_password'],
         'active' => (bool) $u['active'],
         'created_at' => $u['created_at'],

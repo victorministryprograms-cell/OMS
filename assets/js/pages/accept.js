@@ -2,7 +2,7 @@
 OMS.pages.accept = {
   name: 'accept',
   title: 'Accept Invite',
-  subtitle: 'Paste the program link your manager shared',
+  subtitle: 'Enter a program link',
   roles: ['team_leader'],
   async render(container) {
     const ui = OMS.ui;
@@ -13,8 +13,8 @@ OMS.pages.accept = {
     card.appendChild(ui.el('p', {
       class: 'small muted',
       style: 'margin:6px 0 16px;line-height:1.6',
-      text: 'Paste the full link your Programs Manager sent you (it looks like ' +
-        location.origin + location.pathname + '#/join/xxxxxxxx). We will open the program so you can register your officials.',
+      text: 'Paste the link your manager sent you, e.g. ' +
+        location.origin + location.pathname + '#/join/xxxxxxxx.',
     }));
 
     const input = ui.el('input', { class: 'input', placeholder: 'Paste program link here', autocomplete: 'off' });
@@ -40,7 +40,7 @@ OMS.pages.accept = {
       errBox.style.display = 'none';
       const token = extractToken(input.value);
       if (!token) {
-        errBox.textContent = 'That does not look like a valid program link. Paste the full link your manager shared.';
+        errBox.textContent = 'That is not a valid link. Paste the full link your manager sent.';
         errBox.style.display = 'block';
         input.focus();
         return;

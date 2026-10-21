@@ -20,3 +20,12 @@
 <FilesMatch "\.(sqlite|sqlite3|db)$">
     Require all denied
 </FilesMatch>
+
+# Never serve stale pages or assets (mirrors the dev front controller).
+<IfModule mod_headers.c>
+    <FilesMatch "\.(html|htm|js|css)$">
+        Header set Cache-Control "no-store, no-cache, must-revalidate, max-age=0"
+        Header set Pragma "no-cache"
+        Header set Expires "0"
+    </FilesMatch>
+</IfModule>

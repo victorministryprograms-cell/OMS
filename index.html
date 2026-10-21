@@ -3,9 +3,28 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <meta name="theme-color" content="#0a1a33" />
+  <meta name="description" content="Create programs, register officials, and approve rosters." />
   <title>Officials Management System</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="icon" href="/assets/icons/favicon.ico" sizes="any" />
+  <link rel="icon" type="image/png" href="/assets/icons/favicon-32.png" sizes="32x32" />
+  <script>
+    // Remove the legacy PWA service worker and its caches so updates take effect.
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.getRegistrations().then(function (regs) {
+        if (!regs.length) return;
+        Promise.all(regs.map(function (r) { return r.unregister(); })).then(function () {
+          return window.caches ? caches.keys().then(function (keys) {
+            return Promise.all(keys.map(function (k) { return caches.delete(k); }));
+          }) : null;
+        }).then(function () {
+          if (!sessionStorage.getItem('oms-sw-cleared')) {
+            sessionStorage.setItem('oms-sw-cleared', '1');
+            location.reload();
+          }
+        });
+      });
+    }
+  </script>
   <link rel="stylesheet" href="/assets/css/styles.css" />
 </head>
 <body>
@@ -25,6 +44,7 @@
   <script src="/assets/js/pages/officials.js"></script>
   <script src="/assets/js/pages/submissions.js"></script>
   <script src="/assets/js/pages/users.js"></script>
+  <script src="/assets/js/pages/teams.js"></script>
   <script src="/assets/js/pages/profile.js"></script>
   <script src="/assets/js/router.js"></script>
   <script src="/assets/js/app.js"></script>

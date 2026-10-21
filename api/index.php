@@ -29,6 +29,7 @@ try {
         'users'       => require __DIR__ . '/routes/users.php',
         'events'      => require __DIR__ . '/routes/events.php',
         'officials'   => require __DIR__ . '/routes/officials.php',
+        'teams'       => require __DIR__ . '/routes/teams.php',
         'submissions' => require __DIR__ . '/routes/submissions.php',
         'public'      => require __DIR__ . '/routes/public.php',
         'export'      => require __DIR__ . '/routes/export.php',

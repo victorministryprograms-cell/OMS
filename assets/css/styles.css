@@ -86,6 +86,10 @@ h1, h2, h3, h4 { margin: 0; font-weight: 700; letter-spacing: -0.01em; }
   letter-spacing: 0.5px;
 }
 
+.brand .brand-logo {
+  width: 40px; height: 40px; object-fit: contain; display: block; flex: none;
+}
+
 .brand .name { font-size: 15px; font-weight: 700; color: #fff; line-height: 1.15; }
 .brand .name span { display: block; font-size: 11px; color: var(--gold); font-weight: 600; letter-spacing: 1.5px; text-transform: uppercase; margin-top: 3px; }
 
@@ -335,19 +339,21 @@ table.data tr:hover td { background: #fafbfd; }
 .auth-wrap {
   min-height: 100vh; display: grid; grid-template-columns: 1.05fr 0.95fr;
 }
-@media (max-width: 860px) { .auth-wrap { grid-template-columns: 1fr; } .auth-side { display: none; } }
 
 .auth-side {
   background:
     radial-gradient(circle at 20% 15%, rgba(212,175,55,.18), transparent 45%),
     linear-gradient(160deg, var(--navy-800), var(--navy-950));
-  color: #e7edf7; padding: 60px 56px; display: flex; flex-direction: column; justify-content: space-between;
+  color: #e7edf7; padding: 60px 56px; display: flex; flex-direction: column; justify-content: space-between; text-align: left;
 }
+.auth-side > .small { margin-top: 26px; }
 .auth-side .mark-lg {
   width: 54px; height: 54px; border-radius: 15px;
   background: linear-gradient(135deg, var(--gold), var(--gold-deep));
   color: var(--navy-950); display: grid; place-items: center; font-weight: 800; font-size: 20px;
 }
+
+.auth-side .auth-logo { width: 76px; height: 76px; object-fit: contain; display: block; }
 .auth-side h1 { color: #fff; font-size: 30px; margin-top: 34px; line-height: 1.2; }
 .auth-side h1 em { color: var(--gold); font-style: normal; }
 .auth-side p { color: #a9b6cd; font-size: 14.5px; line-height: 1.7; max-width: 420px; margin-top: 14px; }
@@ -359,6 +365,18 @@ table.data tr:hover td { background: #fafbfd; }
 .auth-box { width: 100%; max-width: 392px; }
 .auth-box h2 { font-size: 24px; color: var(--navy-900); }
 .auth-box .sub { color: var(--muted); font-size: 13.5px; margin: 8px 0 26px; }
+
+@media (max-width: 860px) {
+  .auth-wrap { grid-template-columns: 1fr; grid-template-rows: auto 1fr; }
+  .auth-side { justify-content: flex-start; padding: 40px 56px 44px; }
+}
+@media (max-width: 640px) {
+  .auth-side { padding: 28px 22px 30px; }
+  .auth-side .auth-logo { width: 52px; height: 52px; }
+  .auth-side h1 { font-size: 23px; margin-top: 16px; }
+  .auth-side ul { margin-top: 18px; gap: 9px; }
+  .auth-main { padding: 28px 20px 44px; }
+}
 
 .role-picker { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-bottom: 22px; }
 .role-opt {

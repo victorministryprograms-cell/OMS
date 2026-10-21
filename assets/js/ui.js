@@ -82,7 +82,7 @@ OMS.ui = (function () {
       const okBtn = el('button', { class: 'btn ' + (opts.danger ? 'btn-danger' : 'btn-primary'), text: opts.okText || 'Confirm' });
       const cancel = el('button', { class: 'btn btn-outline', text: 'Cancel' });
       const m = modal({
-        title: opts.title || 'Please confirm',
+        title: opts.title || 'Confirm',
         body: el('p', { class: 'small', style: 'line-height:1.6;margin:0;color:#4a5568', text: message }),
         footer: [cancel, okBtn],
       });
@@ -119,7 +119,7 @@ OMS.ui = (function () {
 
   const SUBMISSION_LABELS = {
     draft: 'Draft',
-    submitted: 'Pending approval',
+    submitted: 'Pending',
     approved: 'Approved',
     revision: 'Edits requested',
   };
@@ -131,6 +131,20 @@ OMS.ui = (function () {
   function submissionBadge(status) {
     const s = status || 'draft';
     return '<span class="badge ' + esc(s) + '">' + esc(submissionLabel(s)) + '</span>';
+  }
+
+  function teamSelect(teams, current) {
+    const sel = el('select', { class: 'select' });
+    sel.appendChild(el('option', { value: '', text: 'No team' }));
+    (teams || []).forEach(function (t) {
+      sel.appendChild(el('option', { value: String(t.id), text: t.name }));
+    });
+    if (current) sel.value = String(current);
+    return sel;
+  }
+
+  async function fetchTeams() {
+    try { return await OMS.api.get('/teams'); } catch (e) { return []; }
   }
 
   const OFFICIAL_TITLES = ['Brother', 'Sister', 'Pastor', 'Deacon', 'Deaconess'];
@@ -150,5 +164,6 @@ OMS.ui = (function () {
   return { esc: esc, html: html, el: el, toast: toast, modal: modal, confirm: confirm,
            initials: initials, fmtDate: fmtDate, fmtDateTime: fmtDateTime,
            roleLabel: roleLabel, statusBadge: statusBadge, titleSelect: titleSelect,
+           teamSelect: teamSelect, fetchTeams: fetchTeams,
            submissionLabel: submissionLabel, submissionBadge: submissionBadge };
 })();
