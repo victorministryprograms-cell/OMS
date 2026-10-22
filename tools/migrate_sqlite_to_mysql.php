@@ -82,6 +82,11 @@ if ($mode === 'dump') {
     fwrite($fh, "-- OMS data dump generated from SQLite\n");
     fwrite($fh, "-- Source: " . basename($sqlitePath) . "\n\n");
     fwrite($fh, "SET NAMES utf8mb4;\nSET FOREIGN_KEY_CHECKS = 0;\nSET time_zone = '+00:00';\n\n");
+    fwrite($fh, "-- Clear existing rows first so the import can be repeated safely.\n");
+    foreach (array_reverse(TABLES) as $table) {
+        fwrite($fh, "DELETE FROM `$table`;\n");
+    }
+    fwrite($fh, "\n");
 
     foreach (TABLES as $table) {
         $columns = table_columns($src, $table);
