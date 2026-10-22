@@ -47,12 +47,12 @@ OMS.pages.profile = {
     pwBody.appendChild(ui.el('div', { class: 'divider' }));
     pwBody.appendChild(ui.el('div', { class: 'small', style: 'font-weight:600;color:var(--navy-800);margin-bottom:14px', text: 'Change password (optional)' }));
 
-    const current = ui.el('input', { class: 'input', type: 'password', placeholder: 'Default: 1234567890', autocomplete: 'current-password' });
-    const next = ui.el('input', { class: 'input', type: 'password', placeholder: 'New password', autocomplete: 'new-password' });
-    const confirmPw = ui.el('input', { class: 'input', type: 'password', placeholder: 'Repeat new password', autocomplete: 'new-password' });
-    pwBody.appendChild(ui.el('div', { class: 'field' }, [ui.el('label', { text: 'Current password' }), current]));
-    pwBody.appendChild(ui.el('div', { class: 'field' }, [ui.el('label', { text: 'New password' }), next]));
-    pwBody.appendChild(ui.el('div', { class: 'field' }, [ui.el('label', { text: 'Confirm new password' }), confirmPw]));
+    const current = ui.passwordInput({ placeholder: 'Default: 1234567890', autocomplete: 'current-password' });
+    const next = ui.passwordInput({ placeholder: 'New password', autocomplete: 'new-password' });
+    const confirmPw = ui.passwordInput({ placeholder: 'Repeat new password', autocomplete: 'new-password' });
+    pwBody.appendChild(ui.el('div', { class: 'field' }, [ui.el('label', { text: 'Current password' }), current.wrap]));
+    pwBody.appendChild(ui.el('div', { class: 'field' }, [ui.el('label', { text: 'New password' }), next.wrap]));
+    pwBody.appendChild(ui.el('div', { class: 'field' }, [ui.el('label', { text: 'Confirm new password' }), confirmPw.wrap]));
 
     const save = ui.el('button', { class: 'btn btn-gold', text: 'Save changes' });
     const msg = ui.el('div', { style: 'margin-top:14px' });
@@ -63,7 +63,7 @@ OMS.pages.profile = {
       msg.innerHTML = '';
       const uname = username.value.trim();
       const usernameChanged = uname !== user.username;
-      const wantsPassword = !!(next.value || confirmPw.value);
+      const wantsPassword = !!(next.input.value || confirmPw.input.value);
 
       if (!usernameChanged && !wantsPassword) {
         msg.appendChild(ui.el('div', { class: 'alert err', text: 'Nothing to update.' }));
@@ -74,16 +74,16 @@ OMS.pages.profile = {
         return;
       }
       if (wantsPassword) {
-        if (!current.value) { msg.appendChild(ui.el('div', { class: 'alert err', text: 'Enter your current password to change it.' })); return; }
-        if (!next.value) { msg.appendChild(ui.el('div', { class: 'alert err', text: 'Enter a new password.' })); return; }
-        if (next.value !== confirmPw.value) { msg.appendChild(ui.el('div', { class: 'alert err', text: 'New passwords do not match.' })); return; }
+        if (!current.input.value) { msg.appendChild(ui.el('div', { class: 'alert err', text: 'Enter your current password to change it.' })); return; }
+        if (!next.input.value) { msg.appendChild(ui.el('div', { class: 'alert err', text: 'Enter a new password.' })); return; }
+        if (next.input.value !== confirmPw.input.value) { msg.appendChild(ui.el('div', { class: 'alert err', text: 'New passwords do not match.' })); return; }
       }
 
       save.disabled = true;
       save.textContent = 'Saving…';
       try {
         if (usernameChanged) await OMS.api.post('/auth/update-profile', { username: uname });
-        if (wantsPassword) await OMS.api.post('/auth/change-password', { current_password: current.value, new_password: next.value });
+        if (wantsPassword) await OMS.api.post('/auth/change-password', { current_password: current.input.value, new_password: next.input.value });
         const fresh = await OMS.api.get('/auth/me');
         OMS.store.setUser(fresh);
         ui.toast('Profile updated successfully.', 'ok');

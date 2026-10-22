@@ -43,10 +43,10 @@ OMS.pages.login = {
     box.appendChild(ui.el('div', { class: 'field' }, [ui.el('label', { text: 'Privilege' }), roleSelect]));
 
     const username = ui.el('input', { class: 'input', placeholder: 'KingsChat Username', autocomplete: 'username' });
-    const password = ui.el('input', { class: 'input', type: 'password', placeholder: '••••••••', autocomplete: 'current-password' });
+    const password = ui.passwordInput({ placeholder: '••••••••', autocomplete: 'current-password' });
 
     box.appendChild(ui.el('div', { class: 'field' }, [ui.el('label', { text: 'KingsChat Username' }), username]));
-    box.appendChild(ui.el('div', { class: 'field' }, [ui.el('label', { text: 'Password' }), password]));
+    box.appendChild(ui.el('div', { class: 'field' }, [ui.el('label', { text: 'Password' }), password.wrap]));
 
     const btn = ui.el('button', { class: 'btn btn-primary btn-block', text: 'Sign in' });
     box.appendChild(btn);
@@ -61,7 +61,7 @@ OMS.pages.login = {
 
     async function submit() {
       errBox.style.display = 'none';
-      if (!username.value.trim() || !password.value) {
+      if (!username.value.trim() || !password.input.value) {
         errBox.textContent = 'Enter your username and password.';
         errBox.style.display = 'block';
         return;
@@ -69,7 +69,7 @@ OMS.pages.login = {
       btn.disabled = true;
       btn.textContent = 'Signing in…';
       try {
-        const user = await OMS.store.login(username.value.trim(), password.value, role);
+        const user = await OMS.store.login(username.value.trim(), password.input.value, role);
         ui.toast('Welcome, ' + (user.first_name || user.username) + '!', 'ok');
         const ret = sessionStorage.getItem('oms_return');
         if (ret) {
@@ -87,7 +87,7 @@ OMS.pages.login = {
     }
 
     btn.onclick = submit;
-    [username, password].forEach((inp) => inp.addEventListener('keydown', (e) => { if (e.key === 'Enter') submit(); }));
+    [username, password.input].forEach((inp) => inp.addEventListener('keydown', (e) => { if (e.key === 'Enter') submit(); }));
 
     wrap.appendChild(side);
     wrap.appendChild(ui.el('div', { class: 'auth-main' }, [box]));

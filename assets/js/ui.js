@@ -161,9 +161,43 @@ OMS.ui = (function () {
     return sel;
   }
 
+  const EYE = '<svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M2 12s3.8-7 10-7 10 7 10 7-3.8 7-10 7-10-7-10-7z"/><circle cx="12" cy="12" r="3"/></svg>';
+  const EYE_OFF = '<svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M17.9 17.9A10.4 10.4 0 0 1 12 19.5C5.4 19.5 2 12.5 2 12.5a18.6 18.6 0 0 1 5.1-5.6M9.9 4.6A9.6 9.6 0 0 1 12 4.5c6.6 0 10 7 10 7a18.7 18.7 0 0 1-2.2 3.3"/><path d="M14.1 14.1a3 3 0 1 1-4.2-4.2"/><line x1="2.5" y1="2.5" x2="21.5" y2="21.5"/></svg>';
+
+  /* Password input with an eye button that shows/hides the value.
+     Returns { input, wrap } - append `wrap` to the DOM, read `input.value`. */
+  function passwordInput(opts) {
+    const attrs = Object.assign({ class: 'input', type: 'password', autocomplete: 'off' }, opts || {});
+    const input = el('input', attrs);
+    const toggle = el('button', {
+      class: 'pw-toggle',
+      type: 'button',
+      title: 'Show password',
+      'aria-label': 'Show password',
+      'aria-pressed': 'false',
+      html: EYE,
+    });
+    const wrap = el('div', { class: 'pw-wrap' }, [input, toggle]);
+
+    toggle.onclick = function () {
+      const revealed = input.type === 'password';
+      input.type = revealed ? 'text' : 'password';
+      toggle.innerHTML = revealed ? EYE_OFF : EYE;
+      toggle.title = revealed ? 'Hide password' : 'Show password';
+      toggle.setAttribute('aria-label', revealed ? 'Hide password' : 'Show password');
+      toggle.setAttribute('aria-pressed', revealed ? 'true' : 'false');
+      input.focus();
+      const end = input.value.length;
+      try { input.setSelectionRange(end, end); } catch (e) { /* older browsers */ }
+    };
+
+    return { input: input, wrap: wrap, toggle: toggle };
+  }
+
   return { esc: esc, html: html, el: el, toast: toast, modal: modal, confirm: confirm,
            initials: initials, fmtDate: fmtDate, fmtDateTime: fmtDateTime,
            roleLabel: roleLabel, statusBadge: statusBadge, titleSelect: titleSelect,
            teamSelect: teamSelect, fetchTeams: fetchTeams,
-           submissionLabel: submissionLabel, submissionBadge: submissionBadge };
+           submissionLabel: submissionLabel, submissionBadge: submissionBadge,
+           passwordInput: passwordInput };
 })();

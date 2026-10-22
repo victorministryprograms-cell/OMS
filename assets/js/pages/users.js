@@ -112,14 +112,26 @@ function userModal(user, onDone, teams) {
   function syncTeam() { teamField.style.display = roleSel.value === 'team_leader' ? '' : 'none'; }
   roleSel.onchange = syncTeam;
 
-  const password = ui.el('input', { class: 'input', type: 'password', placeholder: 'Defaults to 1234567890' });
+  // A brand new account's password must never be filled in by the browser
+  // or a password manager: "new-password" tells the browser this is not an
+  // existing credential, and the data-* attributes skip password managers.
+  const password = ui.passwordInput({
+    placeholder: 'Defaults to 1234567890',
+    autocomplete: 'new-password',
+    name: 'new_account_password',
+    'data-lpignore': 'true',
+    'data-1p-ignore': 'true',
+    autocorrect: 'off',
+    autocapitalize: 'off',
+    spellcheck: 'false',
+  });
 
   const body = ui.el('div', {}, [
     ui.el('div', { class: 'field-row' }, [f('KingsChat Username', username), f('Privilege', roleSel)]),
     ui.el('div', { class: 'field-row' }, [f('First name', first), f('Last name', last)]),
     f('KingsChat phone', phone),
     teamField,
-    isEdit ? null : f('Initial password (optional)', password),
+    isEdit ? null : f('Initial password (optional)', password.wrap),
     isEdit ? null : ui.el('div', { class: 'hint', text: 'Defaults to 1234567890.' }),
   ]);
   syncTeam();
@@ -137,7 +149,7 @@ function userModal(user, onDone, teams) {
     };
     if (!isEdit) {
       payload.username = username.value.trim();
-      if (password.value) payload.password = password.value;
+      if (password.input.value) payload.password = password.input.value;
       if (!payload.username) { ui.toast('Username is required.', 'err'); return; }
     }
     save.disabled = true;
