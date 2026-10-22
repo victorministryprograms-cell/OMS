@@ -4,11 +4,43 @@
 require_super_admin();
 
 if ($method === 'GET' && !isset($rest[0])) {
-    $rows = db()->query(
-        'SELECT u.*, t.name AS team_name FROM users u
-         LEFT JOIN teams t ON t.id = u.team_id
-         ORDER BY u.role, u.username'
-    )->fetchAll();
+    $search = trim((string) q('search', ''));
+    if ($search === '') {
+        $rows = db()->query(
+            'SELECT u.*, t.name AS team_name FROM users u
+             LEFT JOIN teams t ON t.id = u.team_id
+             ORDER BY u.role, u.username'
+        )->fetchAll();
+    } else {
+        $like = '%' . $search . '%';
+
+        // Let the search term match the role as it is written on screen
+        // ("Super User") as well as the stored value ("super_admin").
+        $roleKeys = [];
+        foreach ([ROLE_SUPER => 'Super User', ROLE_MANAGER => 'Programs Manager', ROLE_LEADER => 'Team Leader'] as $key => $label) {
+            if (stripos($label, $search) !== false || stripos($key, $search) !== false) {
+                $roleKeys[] = $key;
+            }
+        }
+
+        $sql = 'SELECT u.*, t.name AS team_name FROM users u
+                LEFT JOIN teams t ON t.id = u.team_id
+                WHERE u.username LIKE ? OR u.first_name LIKE ? OR u.last_name LIKE ?
+                   OR u.kingschat_phone LIKE ? OR u.role LIKE ? OR t.name LIKE ?
+                   OR ' . sql_concat('u.first_name', 'u.last_name') . ' LIKE ?';
+        $vals = [$like, $like, $like, $like, $like, $like, $like];
+
+        if ($roleKeys) {
+            $place = implode(',', array_fill(0, count($roleKeys), '?'));
+            $sql .= " OR u.role IN ($place)";
+            $vals = array_merge($vals, $roleKeys);
+        }
+
+        $sql .= ' ORDER BY u.role, u.username';
+        $stmt = db()->prepare($sql);
+        $stmt->execute($vals);
+        $rows = $stmt->fetchAll();
+    }
     ok(array_map('user_public', $rows));
 }
 

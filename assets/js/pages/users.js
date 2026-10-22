@@ -15,20 +15,53 @@ OMS.pages.users = {
       ]),
     ]);
     const add = ui.el('button', { class: 'btn btn-gold', text: '+ New user' });
-    add.onclick = async () => userModal(null, load, await ui.fetchTeams());
+    add.onclick = async () => userModal(null, reload, await ui.fetchTeams());
     head.appendChild(add);
     container.appendChild(head);
+
+    const count = ui.el('span', { class: 'small', style: 'color:var(--muted)' });
+    const searchBar = ui.el('div', { class: 'search-bar' }, [
+      ui.el('input', { class: 'input', placeholder: 'Search by name, username, phone, team or role' }),
+    ]);
+    container.appendChild(searchBar);
+    container.appendChild(ui.el('div', { class: 'between', style: 'margin:-6px 0 10px' }, [
+      count,
+      ui.el('span', { class: 'small', style: 'color:var(--muted)', text: 'Privileges: Super User, Programs Manager, Team Leader' }),
+    ]));
 
     const card = ui.el('div', { class: 'card' });
     container.appendChild(card);
 
-    async function load() {
+    const searchInput = searchBar.querySelector('input');
+    let timer = null;
+    searchInput.oninput = function () {
+      clearTimeout(timer);
+      timer = setTimeout(() => load(searchInput.value), 250);
+    };
+
+    async function reload() { load(searchInput.value); }
+
+    async function load(term) {
       card.innerHTML = '';
       card.appendChild(ui.el('div', { class: 'loading' }, [ui.el('span', { class: 'spinner' }), 'Loading users…']));
       let rows = [];
-      try { rows = await OMS.api.get('/users'); }
+      try { rows = await OMS.api.get('/users' + (term ? '?search=' + encodeURIComponent(term) : '')); }
       catch (e) { card.innerHTML = ''; card.appendChild(ui.el('div', { class: 'alert err', text: e.message })); return; }
       card.innerHTML = '';
+
+      const term_ = (term || '').trim();
+      count.textContent = term_
+        ? rows.length + (rows.length === 1 ? ' match for "' + term_ + '"' : ' matches for "' + term_ + '"')
+        : rows.length + (rows.length === 1 ? ' user' : ' users');
+
+      if (!rows.length) {
+        card.appendChild(ui.el('div', { class: 'empty' }, [
+          ui.el('div', { class: 'big', text: '☰' }),
+          ui.el('h4', { text: term_ ? 'No matches' : 'No users yet' }),
+          ui.el('p', { text: term_ ? 'Try a different name, username, team or role.' : 'Create an account to get started.' }),
+        ]));
+        return;
+      }
       const me = OMS.store.getUser();
 
       const wrap = ui.el('div', { class: 'table-wrap' });
@@ -45,7 +78,7 @@ OMS.pages.users = {
       const tbody = ui.el('tbody');
       rows.forEach(function (u) {
         const edit = ui.el('button', { class: 'btn btn-sm btn-outline', text: 'Edit' });
-        edit.onclick = async () => userModal(u, load, await ui.fetchTeams());
+        edit.onclick = async () => userModal(u, reload, await ui.fetchTeams());
 
         const reset = ui.el('button', { class: 'btn btn-sm btn-outline', text: 'Reset password' });
         reset.onclick = async function () {
@@ -56,7 +89,7 @@ OMS.pages.users = {
 
         const toggle = ui.el('button', { class: 'btn btn-sm ' + (u.active ? 'btn-danger' : 'btn-outline'), text: u.active ? 'Disable' : 'Enable' });
         toggle.onclick = async function () {
-          try { await OMS.api.put('/users/' + u.id, { active: !u.active }); ui.toast('User updated.', 'ok'); load(); }
+          try { await OMS.api.put('/users/' + u.id, { active: !u.active }); ui.toast('User updated.', 'ok'); reload(); }
           catch (e) { ui.toast(e.message, 'err'); }
         };
 
@@ -65,7 +98,7 @@ OMS.pages.users = {
           const del = ui.el('button', { class: 'btn btn-sm btn-danger', text: 'Delete' });
           del.onclick = async function () {
             if (!(await ui.confirm('Delete the account "' + u.username + '"? This cannot be undone.', { danger: true, okText: 'Delete' }))) return;
-            try { await OMS.api.del('/users/' + u.id); ui.toast('User deleted.', 'ok'); load(); }
+            try { await OMS.api.del('/users/' + u.id); ui.toast('User deleted.', 'ok'); reload(); }
             catch (e) { ui.toast(e.message, 'err'); }
           };
           actions.push(del);
@@ -86,7 +119,7 @@ OMS.pages.users = {
       card.appendChild(wrap);
     }
 
-    load();
+    load('');
   },
 };
 

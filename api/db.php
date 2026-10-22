@@ -67,6 +67,13 @@ function sql_now(): string {
     return db_is_mysql() ? 'UTC_TIMESTAMP()' : "datetime('now')";
 }
 
+// SQL expression that joins two text columns with a space (full names).
+function sql_concat(string $a, string $b): string {
+    return db_is_mysql()
+        ? "CONCAT($a, ' ', $b)"
+        : "($a || ' ' || $b)";
+}
+
 // TRUE when the core table already exists.
 function db_has_schema(PDO $pdo): bool {
     if (db_is_mysql()) {
