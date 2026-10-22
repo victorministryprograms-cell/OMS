@@ -37,6 +37,9 @@ defined('DB_NAME') || define('DB_NAME', '');
 defined('DB_USER') || define('DB_USER', '');
 defined('DB_PASS') || define('DB_PASS', '');
 defined('DB_CHARSET') || define('DB_CHARSET', 'utf8mb4');
+// Optional unix socket path, e.g. '/opt/cpanel/ea-php83/root/usr/share/mysqld/mysql.sock'.
+// Leave empty to connect over TCP; set it if "Can't connect to MySQL server" appears.
+defined('DB_SOCKET') || define('DB_SOCKET', '');
 
 // Roles used across the system.
 const ROLE_SUPER   = 'super_admin';
