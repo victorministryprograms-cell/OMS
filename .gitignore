@@ -7,6 +7,12 @@
 # Logs
 *.log
 
+# Local settings (database credentials, JWT secret) - never commit
+/api/config.local.php
+
+# Deployment archives
+*.zip
+
 # OS / editor cruft
 .DS_Store
 Thumbs.db

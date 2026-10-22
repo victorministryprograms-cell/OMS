@@ -73,7 +73,7 @@ if ($method === 'POST' && $action === 'approve') {
             ->execute(array_merge([$id], $ids));
     }
 
-    db()->prepare("UPDATE submissions SET status = 'approved', reviewed_by = ?, reviewed_at = datetime('now'), review_note = '' WHERE id = ?")
+    db()->prepare("UPDATE submissions SET status = 'approved', reviewed_by = ?, reviewed_at = " . sql_now() . ", review_note = '' WHERE id = ?")
         ->execute([$me['id'], $id]);
 
     $count = db()->prepare('SELECT COUNT(*) FROM roster_entries WHERE submission_id = ? AND approved = 1');
@@ -87,7 +87,7 @@ if ($method === 'POST' && $action === 'request-revision') {
     if ($note === '') {
         fail('Please describe the requested changes.', 422);
     }
-    db()->prepare("UPDATE submissions SET status = 'revision', reviewed_by = ?, reviewed_at = datetime('now'), review_note = ? WHERE id = ?")
+    db()->prepare("UPDATE submissions SET status = 'revision', reviewed_by = ?, reviewed_at = " . sql_now() . ", review_note = ? WHERE id = ?")
         ->execute([$me['id'], $note, $id]);
     ok(['revision_requested' => true]);
 }

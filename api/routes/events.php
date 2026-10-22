@@ -248,7 +248,7 @@ if ($sub === 'submit' && $method === 'POST') {
     // Re-submitting resets any previous per-official approvals.
     db()->prepare('UPDATE roster_entries SET approved = 0 WHERE submission_id = ?')
         ->execute([$submission['id']]);
-    db()->prepare("UPDATE submissions SET status = 'submitted', submitted_at = datetime('now'), note = ? WHERE id = ?")
+    db()->prepare("UPDATE submissions SET status = 'submitted', submitted_at = " . sql_now() . ", note = ? WHERE id = ?")
         ->execute([$note, $submission['id']]);
     ok(['submitted' => true]);
 }

@@ -9,7 +9,7 @@ if (!isset($rest[0])) {
             'SELECT t.*,
                     (SELECT COUNT(*) FROM officials o WHERE o.team_id = t.id) AS official_count,
                     (SELECT COUNT(*) FROM users u WHERE u.team_id = t.id) AS leader_count
-             FROM teams t ORDER BY t.name COLLATE NOCASE'
+             FROM teams t ORDER BY LOWER(t.name)'
         )->fetchAll();
         foreach ($rows as &$r) {
             $r['id'] = (int) $r['id'];
@@ -25,7 +25,7 @@ if (!isset($rest[0])) {
         $data = body();
         require_fields($data, ['name']);
         $name = trim((string) $data['name']);
-        $exists = db()->prepare('SELECT id FROM teams WHERE name = ? COLLATE NOCASE');
+        $exists = db()->prepare('SELECT id FROM teams WHERE LOWER(name) = LOWER(?)');
         $exists->execute([$name]);
         if ($exists->fetchColumn()) {
             fail('A team with that name already exists.', 409);
@@ -58,7 +58,7 @@ if ($method === 'PUT') {
     if ($name === '') {
         fail('Team name cannot be empty.', 422);
     }
-    $exists = db()->prepare('SELECT id FROM teams WHERE name = ? COLLATE NOCASE AND id <> ?');
+    $exists = db()->prepare('SELECT id FROM teams WHERE LOWER(name) = LOWER(?) AND id <> ?');
     $exists->execute([$name, $id]);
     if ($exists->fetchColumn()) {
         fail('A team with that name already exists.', 409);

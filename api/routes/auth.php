@@ -49,7 +49,7 @@ if ($method === 'POST' && ($rest[0] ?? '') === 'update-profile') {
         fail('Username must be 3-50 characters: letters, numbers, dots, dashes or underscores.', 422);
     }
     if (strcasecmp($username, $user['username']) !== 0) {
-        $chk = db()->prepare('SELECT id FROM users WHERE username = ? COLLATE NOCASE AND id <> ?');
+        $chk = db()->prepare('SELECT id FROM users WHERE LOWER(username) = LOWER(?) AND id <> ?');
         $chk->execute([$username, $user['id']]);
         if ($chk->fetch()) {
             fail('That username is already taken.', 409);

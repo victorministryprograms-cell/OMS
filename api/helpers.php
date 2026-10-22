@@ -76,7 +76,7 @@ function resolve_team_name(string $name): ?int {
     if ($name === '') {
         return null;
     }
-    $stmt = db()->prepare('SELECT id FROM teams WHERE name = ? COLLATE NOCASE');
+    $stmt = db()->prepare('SELECT id FROM teams WHERE LOWER(name) = LOWER(?)');
     $stmt->execute([$name]);
     $id = $stmt->fetchColumn();
     if ($id) {
